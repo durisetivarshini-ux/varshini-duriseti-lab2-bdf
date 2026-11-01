@@ -1,0 +1,7 @@
+$kind: http-request
+method: DELETE
+url: '{{base_url}}/books/:bookId'
+order: 5000
+pathVariables:
+  - key: bookId
+    value: '{{new_book_id}}'

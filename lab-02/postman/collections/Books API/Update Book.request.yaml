@@ -1,0 +1,19 @@
+$kind: http-request
+method: PUT
+url: '{{base_url}}/books/:bookId'
+order: 4000
+pathVariables:
+  - key: bookId
+    value: '{{new_book_id}}'
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "title": "The Guide",
+      "author": "R. K. Narayan",
+      "price": 275,
+      "pages": 220
+    }
