@@ -74,6 +74,12 @@ The official SQLite command-line tool was used to inspect the submitted database
 
 ![SQLite CLI showing the book table schema and all ten records](screenshots/03-sqlite-cli-table-records.png)
 
+### SQLite CLI after CRUD requests
+
+This genuine terminal screenshot shows the POST, PUT, and DELETE API requests succeeding, with a SQLite CLI query after each change. The final count confirms the database is back to its original ten seeded books.
+
+![SQLite CLI results after POST, PUT, and DELETE](screenshots/14-sqlite-cli-after-crud.png)
+
 ## Run the application
 
 ```sh
@@ -224,7 +230,7 @@ sqlite3 books.db "SELECT * FROM book ORDER BY id;"
 ## Problems faced and solutions
 
 - Postman evidence is being collected separately from browser API evidence. One Postman GET-by-ID image is saved; capture the remaining requests listed above before submission.
-- The SQLite CLI was downloaded from the official SQLite site and used to verify the schema and ten initial rows. Capture additional CLI evidence after POST, PUT, and DELETE requests to document those database changes.
+- The SQLite CLI was downloaded from the official SQLite site and used to verify the schema, initial rows, and database changes after POST, PUT, and DELETE.
 - The faculty name differs between the supplied details and screenshot header. Confirm it before final submission.
 
 ## Conclusion
