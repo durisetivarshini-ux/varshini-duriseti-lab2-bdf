@@ -68,6 +68,12 @@ sqlite3 books.db "SELECT * FROM book;"
 
 The submitted `books.db` contains the initial records. `CREATE TABLE IF NOT EXISTS` keeps the table intact, and `INSERT OR IGNORE` skips sample IDs that already exist.
 
+### SQLite CLI screenshot
+
+The official SQLite command-line tool was used to inspect the submitted database. This screenshot shows the `book` table schema and the actual ten rows returned by `SELECT * FROM book;`.
+
+![SQLite CLI showing the book table schema and all ten records](screenshots/03-sqlite-cli-table-records.png)
+
 ## Run the application
 
 ```sh
@@ -218,7 +224,7 @@ sqlite3 books.db "SELECT * FROM book ORDER BY id;"
 ## Problems faced and solutions
 
 - Postman evidence is being collected separately from browser API evidence. One Postman GET-by-ID image is saved; capture the remaining requests listed above before submission.
-- The SQLite CLI is not available in the current environment. Browser/API checks and database-driver queries were used for local verification; capture genuine CLI evidence once it is installed.
+- The SQLite CLI was downloaded from the official SQLite site and used to verify the schema and ten initial rows. Capture additional CLI evidence after POST, PUT, and DELETE requests to document those database changes.
 - The faculty name differs between the supplied details and screenshot header. Confirm it before final submission.
 
 ## Conclusion
