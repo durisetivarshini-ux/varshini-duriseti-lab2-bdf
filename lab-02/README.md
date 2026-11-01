@@ -1,4 +1,4 @@
-Deployment: Vercel deployment code is prepared. Redeploy the latest GitHub commit and verify `/` and `/books` on the deployed URL. SQLite writes on Vercel use temporary storage and are not durable.
+Deployment: Live at https://varshini-duriseti-lab2-bdf.vercel.app/. Verified: `/` returns HTTP 200, `/books` returns HTTP 200 with ten seeded records, and `/books/1` returns The Guide. SQLite writes on Vercel use temporary storage and are not durable.
 
 # Lab 2 – SQLite Database and CRUD Routes
 
