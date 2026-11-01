@@ -96,7 +96,7 @@ The server uses port `3000` by default. To use another port, set the `PORT` envi
 
 ## Deploy to Vercel
 
-When importing `durisetivarshini-ux/varshini-duriseti-lab2-bdf` into Vercel, set **Root Directory** to `lab-02`. Vercel can then detect the Express app in `app.js`. The app exports the Express application for Vercel and still starts normally with `npm start` locally. Open the deployed root URL for the API message, or add `/books` to view the seeded records.
+When importing `durisetivarshini-ux/varshini-duriseti-lab2-bdf` into Vercel, set **Root Directory** to `lab-02`. Vercel can then detect the Express app in `app.js`. The `vercel.json` configuration includes `books.db` in the function bundle. The app exports the Express application for Vercel and still starts normally with `npm start` locally. Open the deployed root URL for the API message, or add `/books` to view the seeded records.
 
 Vercel's function filesystem is temporary. The app copies the submitted `books.db` to `/tmp` so SQLite can open it in a function, but changes made by POST, PUT, or DELETE may disappear when the function instance is replaced and are not guaranteed to be shared between instances. Use a hosted database instead of this SQLite file if deployed data must persist.
 
