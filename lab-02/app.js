@@ -11,8 +11,7 @@ app.use(express.json());
 
 function isValidBookDetails(book) {
   return (
-    book !== null &&
-    typeof book === "object" &&
+    book &&
     typeof book.title === "string" &&
     book.title.trim() !== "" &&
     typeof book.author === "string" &&
@@ -24,129 +23,146 @@ function isValidBookDetails(book) {
   );
 }
 
-function asyncHandler(handler) {
-  return (request, response, next) => {
-    Promise.resolve(handler(request, response, next)).catch(next);
-  };
-}
+// Get all books
+app.get("/books", async (request, response) => {
+  try {
+    const books = await database.all("SELECT * FROM book ORDER BY id");
+    response.status(200).json(books);
+  } catch (error) {
+    console.error("Could not get books:", error.message);
+    response.status(500).json({ error: "Could not get books" });
+  }
+});
 
-function getBookId(request, response, next) {
+// Get one book by its ID
+app.get("/books/:bookId", async (request, response) => {
   const bookId = Number(request.params.bookId);
+
   if (!Number.isInteger(bookId) || bookId < 1) {
     response.status(404).json({ error: "Book not found" });
     return;
   }
-  request.bookId = bookId;
-  next();
-}
 
-app.get(
-  "/books",
-  asyncHandler(async (request, response) => {
-    const books = await database.all("SELECT * FROM book ORDER BY id");
-    response.status(200).json(books);
-  }),
-);
-
-app.get(
-  "/books/:bookId",
-  getBookId,
-  asyncHandler(async (request, response) => {
+  try {
     const book = await database.get("SELECT * FROM book WHERE id = ?", [
-      request.bookId,
+      bookId,
     ]);
+
     if (!book) {
       response.status(404).json({ error: "Book not found" });
       return;
     }
+
     response.status(200).json(book);
-  }),
-);
+  } catch (error) {
+    console.error("Could not get the book:", error.message);
+    response.status(500).json({ error: "Could not get the book" });
+  }
+});
 
-app.post(
-  "/books",
-  asyncHandler(async (request, response) => {
-    const { title, author, price, pages } = request.body;
-    if (!isValidBookDetails(request.body)) {
-      response.status(400).json({
-        error:
-          "Provide a non-empty title and author, a non-negative integer price, and a positive integer pages value",
-      });
-      return;
-    }
+// Add a new book
+app.post("/books", async (request, response) => {
+  if (!isValidBookDetails(request.body)) {
+    response.status(400).json({ error: "Please provide valid book details" });
+    return;
+  }
 
-    // SQL injection is unsafe input changing a query; ? placeholders keep input as data.
+  const { title, author, price, pages } = request.body;
+
+  try {
+    // The ? marks keep user input separate from SQL and help prevent SQL injection.
     const result = await database.run(
       "INSERT INTO book (title, author, price, pages) VALUES (?, ?, ?, ?)",
       [title.trim(), author.trim(), price, pages],
     );
+
     response.status(201).json({
       message: "Book added successfully",
       bookId: result.lastID,
     });
-  }),
-);
+  } catch (error) {
+    console.error("Could not add the book:", error.message);
+    response.status(500).json({ error: "Could not add the book" });
+  }
+});
 
-app.put(
-  "/books/:bookId",
-  getBookId,
-  asyncHandler(async (request, response) => {
-    const { title, author, price, pages } = request.body;
-    if (!isValidBookDetails(request.body)) {
-      response.status(400).json({
-        error:
-          "Provide a non-empty title and author, a non-negative integer price, and a positive integer pages value",
-      });
-      return;
-    }
+// Update a book by its ID
+app.put("/books/:bookId", async (request, response) => {
+  const bookId = Number(request.params.bookId);
 
-    // SQL injection is unsafe input changing a query; ? placeholders keep input as data.
+  if (!Number.isInteger(bookId) || bookId < 1) {
+    response.status(404).json({ error: "Book not found" });
+    return;
+  }
+
+  if (!isValidBookDetails(request.body)) {
+    response.status(400).json({ error: "Please provide valid book details" });
+    return;
+  }
+
+  const { title, author, price, pages } = request.body;
+
+  try {
     const result = await database.run(
       "UPDATE book SET title = ?, author = ?, price = ?, pages = ? WHERE id = ?",
-      [title.trim(), author.trim(), price, pages, request.bookId],
+      [title.trim(), author.trim(), price, pages, bookId],
     );
+
     if (result.changes === 0) {
       response.status(404).json({ error: "Book not found" });
       return;
     }
+
     response.status(200).json({ message: "Book updated successfully" });
-  }),
-);
+  } catch (error) {
+    console.error("Could not update the book:", error.message);
+    response.status(500).json({ error: "Could not update the book" });
+  }
+});
 
-app.delete(
-  "/books/:bookId",
-  getBookId,
-  asyncHandler(async (request, response) => {
+// Delete a book by its ID
+app.delete("/books/:bookId", async (request, response) => {
+  const bookId = Number(request.params.bookId);
+
+  if (!Number.isInteger(bookId) || bookId < 1) {
+    response.status(404).json({ error: "Book not found" });
+    return;
+  }
+
+  try {
     const result = await database.run("DELETE FROM book WHERE id = ?", [
-      request.bookId,
+      bookId,
     ]);
+
     if (result.changes === 0) {
       response.status(404).json({ error: "Book not found" });
       return;
     }
-    response.status(200).json({ message: "Book deleted successfully" });
-  }),
-);
 
+    response.status(200).json({ message: "Book deleted successfully" });
+  } catch (error) {
+    console.error("Could not delete the book:", error.message);
+    response.status(500).json({ error: "Could not delete the book" });
+  }
+});
+
+// Show JSON errors for invalid JSON and other request errors.
 app.use((error, request, response, next) => {
   if (response.headersSent) {
     next(error);
     return;
   }
-  const statusCode =
-    Number.isInteger(error.status) && error.status >= 400 && error.status < 500
-      ? error.status
-      : 500;
-  if (statusCode === 500) {
-    console.error(error);
+
+  if (error.status === 400) {
+    response.status(400).json({ error: "Invalid JSON request body" });
+    return;
   }
-  const message =
-    statusCode === 400
-      ? "Invalid request body"
-      : "An internal server error occurred";
-  response.status(statusCode).json({ error: message });
+
+  console.error("Request failed:", error.message);
+  response.status(500).json({ error: "Something went wrong" });
 });
 
+// Connect to the database first, then start the server.
 async function initializeDBAndServer() {
   try {
     database = await sqlite.open({
@@ -154,20 +170,12 @@ async function initializeDBAndServer() {
       driver: sqlite3.Database,
     });
 
-    const port = Number(process.env.PORT) || 3000;
-    const server = app.listen(port, () => {
+    const port = process.env.PORT || 3000;
+    app.listen(port, () => {
       console.log(`Server is running at http://localhost:${port}`);
     });
-    server.on("error", (error) => {
-      console.error("Could not start the server:", error.message);
-      database.close();
-      process.exitCode = 1;
-    });
   } catch (error) {
-    console.error("Could not initialize the database or server:", error.message);
-    if (database) {
-      await database.close();
-    }
+    console.error("Could not connect to the database:", error.message);
     process.exitCode = 1;
   }
 }
