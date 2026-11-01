@@ -1,4 +1,4 @@
-Deployment: Not deployed yet. Deployment is deferred until the student approves it; no hosting account or service has been configured.
+Deployment: Vercel deployment code is prepared. Redeploy the latest GitHub commit and verify `/` and `/books` on the deployed URL. SQLite writes on Vercel use temporary storage and are not durable.
 
 # Lab 2 – SQLite Database and CRUD Routes
 
@@ -94,12 +94,19 @@ npm run dev
 
 The server uses port `3000` by default. To use another port, set the `PORT` environment variable before starting the application.
 
+## Deploy to Vercel
+
+When importing `durisetivarshini-ux/varshini-duriseti-lab2-bdf` into Vercel, set **Root Directory** to `lab-02`. Vercel can then detect the Express app in `app.js`. The app exports the Express application for Vercel and still starts normally with `npm start` locally. Open the deployed root URL for the API message, or add `/books` to view the seeded records.
+
+Vercel's function filesystem is temporary. The app copies the submitted `books.db` to `/tmp` so SQLite can open it in a function, but changes made by POST, PUT, or DELETE may disappear when the function instance is replaced and are not guaranteed to be shared between instances. Use a hosted database instead of this SQLite file if deployed data must persist.
+
 ## API endpoints
 
 All responses use JSON. The `:bookId` path parameter is the integer ID of a book.
 
 | Method | Endpoint | Description | Expected status |
 |---|---|---|---|
+| GET | `/` | Show the API welcome message | 200 |
 | GET | `/books` | Return all books | 200 |
 | GET | `/books/:bookId` | Return one book, or a not-found error | 200 / 404 |
 | POST | `/books` | Add a book | 201; 400 for invalid details |

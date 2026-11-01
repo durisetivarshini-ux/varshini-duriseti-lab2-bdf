@@ -1,13 +1,43 @@
 const path = require("path");
+const fs = require("fs");
+const os = require("os");
 const express = require("express");
 const sqlite = require("sqlite");
 const sqlite3 = require("sqlite3");
 
 const app = express();
-const databasePath = path.join(__dirname, "books.db");
+const bundledDatabasePath = path.join(__dirname, "books.db");
+const isVercel = Boolean(process.env.VERCEL);
+const databasePath = isVercel
+  ? path.join(os.tmpdir(), "books.db")
+  : bundledDatabasePath;
 let database;
 
 app.use(express.json());
+
+function connectToDatabase() {
+  if (isVercel && !fs.existsSync(databasePath)) {
+    fs.copyFileSync(bundledDatabasePath, databasePath);
+  }
+
+  return sqlite.open({
+    filename: databasePath,
+    driver: sqlite3.Database,
+  });
+}
+
+const databaseReady = connectToDatabase().then((connection) => {
+  database = connection;
+  return connection;
+});
+
+databaseReady.catch((error) => {
+  console.error("Could not connect to the database:", error.message);
+});
+
+app.use((request, response, next) => {
+  databaseReady.then(() => next()).catch(next);
+});
 
 function isValidBookDetails(book) {
   return (
@@ -22,6 +52,14 @@ function isValidBookDetails(book) {
     book.pages > 0
   );
 }
+
+// Show a short message when the deployment URL is opened.
+app.get("/", (request, response) => {
+  response.status(200).json({
+    message: "Lab 2 Books API",
+    endpoints: ["/books", "/books/:bookId"],
+  });
+});
 
 // Get all books
 app.get("/books", async (request, response) => {
@@ -162,22 +200,18 @@ app.use((error, request, response, next) => {
   response.status(500).json({ error: "Something went wrong" });
 });
 
-// Connect to the database first, then start the server.
-async function initializeDBAndServer() {
-  try {
-    database = await sqlite.open({
-      filename: databasePath,
-      driver: sqlite3.Database,
+if (require.main === module) {
+  databaseReady
+    .then(() => {
+      const port = process.env.PORT || 3000;
+      app.listen(port, () => {
+        console.log(`Server is running at http://localhost:${port}`);
+      });
+    })
+    .catch((error) => {
+      console.error("Could not start the server:", error.message);
+      process.exitCode = 1;
     });
-
-    const port = process.env.PORT || 3000;
-    app.listen(port, () => {
-      console.log(`Server is running at http://localhost:${port}`);
-    });
-  } catch (error) {
-    console.error("Could not connect to the database:", error.message);
-    process.exitCode = 1;
-  }
 }
 
-initializeDBAndServer();
+module.exports = app;
