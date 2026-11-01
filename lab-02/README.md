@@ -62,7 +62,7 @@ The database file is `books.db`. Its `book` table has the following columns:
 The initial ten sample books are described in [`seed.sql`](seed.sql). The seed uses fixed IDs and `INSERT OR IGNORE`, so running it again does not add duplicate sample rows. To create/populate the database with the SQLite CLI from this folder:
 
 ```sh
-sqlite3 books.db < seed.sql
+sqlite3 books.db ".read seed.sql"
 sqlite3 books.db "SELECT * FROM book;"
 ```
 
@@ -179,7 +179,7 @@ Postman is installed and the existing project collection/environment are prepare
 
 ![Postman GET book by ID response](screenshots/13-postman-get-by-id.png)
 
-The following Postman captures are still missing. After each request is sent, capture the Postman window with method, resolved URL, status, and response body visible. Save the image under the listed name in `screenshots/` and add it here below the matching request. Do not substitute browser response images.
+The table below tracks the Postman screenshots. Rows marked **Captured** are complete; the other screenshots are still missing. For each missing request, capture the Postman window with method, resolved URL, status, and response body visible. Save the image under the listed name in `screenshots/` and add it here below the matching request. Do not substitute browser response images.
 
 | Screenshot filename | Postman request | Expected result |
 |---|---|---|
@@ -229,7 +229,7 @@ sqlite3 books.db "SELECT * FROM book ORDER BY id;"
 
 ## Problems faced and solutions
 
-- Postman evidence is being collected separately from browser API evidence. One Postman GET-by-ID image is saved; capture the remaining requests listed above before submission.
+- Postman evidence is separate from browser API evidence. The GET-all and GET-by-ID screenshots are saved; capture the remaining requests listed above before submission.
 - The SQLite CLI was downloaded from the official SQLite site and used to verify the schema, initial rows, and database changes after POST, PUT, and DELETE.
 - The faculty name differs between the supplied details and screenshot header. Confirm it before final submission.
 
